@@ -1,0 +1,64 @@
+.container {  display: grid;
+  grid-template-columns: 1fr 2.6fr 0.3fr 0.1fr;
+  grid-template-rows: 0.3fr 1.7fr 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "Title Title Logo ."
+    "ButtonArea ButtonArea . ."
+    "ButtonArea ButtonArea . .";
+}
+
+.Title { grid-area: Title; }
+
+.ButtonArea {  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 0.2fr 1.1fr 0.2fr 1.1fr 0.2fr 1.4fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "pixButton pixButton pixButton"
+    "gap gap gap"
+    "CreditButton CreditButton CreditButton"
+    "gap2 gap2 gap2"
+    "DebitButton DebitButton DebitButton"
+    "gap3 gap3 gap3"
+    "VAButton VAButton VAButton";
+  grid-area: ButtonArea;
+}
+
+.pixButton { grid-area: pixButton; }
+
+.gap { grid-area: gap; }
+
+.CreditButton { grid-area: CreditButton; }
+
+.gap2 { grid-area: gap2; }
+
+.DebitButton { grid-area: DebitButton; }
+
+.gap3 { grid-area: gap3; }
+
+.VAButton { grid-area: VAButton; }
+
+.Logo { grid-area: Logo; }
+
+button,
+button:focus {
+  font-size: 17px;
+  padding: 10px 25px;
+  border-radius: 0.7rem;
+  background-image: linear-gradient(rgb(214, 202, 254), rgb(158, 129, 254));
+  border: 2px solid rgb(50, 50, 50);
+  border-bottom: 5px solid rgb(50, 50, 50);
+  box-shadow: 0px 1px 6px 0px rgb(158, 129, 254);
+  transform: translate(0, -3px);
+  cursor: pointer;
+  transition: 0.2s;
+  transition-timing-function: linear;
+}
+
+button:active {
+  transform: translate(0, 0);
+  border-bottom: 2px solid rgb(50, 50, 50);
+}

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de Comprovante OCR - Kiosk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: radial-gradient(circle at 50% 50%, #032018 0%, #09090b 100%);
+        }
+        .container {
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            text-align: center;
+        }
+        .header h2 {
+            font-family: var(--font-outfit);
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--success);
+        }
+        .header p {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        .upload-area {
+            border: 2px dashed rgba(16, 185, 129, 0.3);
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 20px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.04);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+        }
+        .upload-icon {
+            color: var(--success);
+            filter: drop-shadow(0 0 8px var(--success-glow));
+            transition: var(--transition);
+        }
+        .upload-area:hover .upload-icon {
+            transform: translateY(-4px);
+        }
+        .upload-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .upload-text span {
+            color: var(--success);
+            text-decoration: underline;
+        }
+        .upload-hint {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+        .file-preview {
+            display: none;
+            width: 100%;
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+        }
+        .file-icon {
+            color: #ef4444;
+            flex-shrink: 0;
+        }
+        .file-details {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .file-name {
+            font-family: var(--font-outfit);
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-size {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .laser-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--success), transparent);
+            box-shadow: 0 0 10px var(--success), 0 0 20px var(--success);
+            animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            display: none;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        .scanning-text {
+            font-family: var(--font-outfit);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--success);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            animation: blink 1s ease infinite alternate;
+            display: none;
+        }
+        @keyframes blink {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Validação de Comprovante</h2>
+            <p>Envie o comprovante Pix em PDF ou Imagem para escaneamento OCR</p>
+        </div>
+        
+        <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+            <!-- Hidden inputs -->
+            <input type="file" name="receipt" id="file-input" accept="application/pdf,image/png,image/jpeg,image/jpg" style="display: none;" required>
+            
+            <!-- Custom Drop Zone -->
+            <div class="upload-area" id="drop-zone">
+                <div class="upload-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="upload-text">Arraste & Solte ou <span>Busque o Arquivo</span></div>
+                <div class="upload-hint">Formatos aceitos: PDF, PNG, JPG, JPEG (Máx. 5MB)</div>
+            </div>
+            
+            <!-- File Info Preview & Laser Scanning -->
+            <div class="file-preview" id="file-preview">
+                <div class="laser-line" id="laser"></div>
+                <div class="file-info">
+                    <div class="file-icon" id="preview-icon">
+                        <!-- PDF default icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name" id="preview-filename">comprovante.pdf</div>
+                        <div class="file-size" id="preview-filesize">245 KB</div>
+                    </div>
+                </div>
+                <div class="scanning-text" id="scanning-status">Iniciando leitura digital OCR...</div>
+            </div>
+            
+            <button class="checkout-btn" type="submit" id="submit-btn" style="margin-top: 20px; width: 100%;" disabled>
+                <span>Validar Recibo Com OCR</span>
+            </button>
+        </form>
+        
+        <button class="cancel-btn" type="button" onclick="cancelValidation()">Voltar ao PIX</button>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("file-input");
+        const filePreview = document.getElementById("file-preview");
+        const previewFilename = document.getElementById("preview-filename");
+        const previewFilesize = document.getElementById("preview-filesize");
+        const submitBtn = document.getElementById("submit-btn");
+        const laser = document.getElementById("laser");
+        const scanningStatus = document.getElementById("scanning-status");
+        const uploadForm = document.getElementById("upload-form");
+        const previewIcon = document.getElementById("preview-icon");
+
+        // Click to browse
+        dropZone.addEventListener("click", () => fileInput.click());
+
+        // File selected handler
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelected(e.target.files[0]);
+            }
+        });
+
+        // Drag & Drop Handlers
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("dragover");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("dragover");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+            if (e.dataTransfer.files.length > 0) {
+                const file = e.dataTransfer.files[0];
+                const extension = file.name.split('.').pop().toLowerCase();
+                const allowed = ['pdf', 'png', 'jpg', 'jpeg', 'webp'];
+                
+                if (allowed.includes(extension)) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelected(file);
+                } else {
+                    alert("Apenas arquivos PDF, PNG, JPG ou JPEG são aceitos!");
+                }
+            }
+        });
+
+        function handleFileSelected(file) {
+            previewFilename.textContent = file.name;
+            previewFilesize.textContent = formatBytes(file.size);
+            
+            // Adjust preview icon based on extension
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'pdf') {
+                previewIcon.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                `;
+            } else {
+                previewIcon.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                `;
+            }
+            
+            // Toggle preview visibility
+            dropZone.style.display = "none";
+            filePreview.style.display = "flex";
+            submitBtn.disabled = false;
+        }
+
+        // Scanning visual block
+        uploadForm.addEventListener("submit", (e) => {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = "0.7";
+            submitBtn.querySelector("span").textContent = "Processando OCR...";
+            
+            laser.style.display = "block";
+            scanningStatus.style.display = "block";
+            
+            // Artificial delay to let the scanner bar animation cycle beautifully
+            e.preventDefault();
+            setTimeout(() => {
+                uploadForm.submit();
+            }, 2600);
+        });
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function cancelValidation() {
+            window.location.href = "/PixRoute";
+        }
+    </script>
+</body>
+</html>

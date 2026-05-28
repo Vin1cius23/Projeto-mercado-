@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Databases & Backups (Local State)
+kiosk.db
+kiosk.db.bak
+*.db
+*.sqlite
+
+# User Uploads / Temp files
+uploads/*
+!uploads/.gitkeep
+
+# PyInstaller / Build outputs
+build/
+dist/
+*.spec
+RouteTester.exe
+
+# Environments & Secrets
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE / Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo

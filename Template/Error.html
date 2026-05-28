@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro - Pagamento Rejeitado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #09090b;
+            --bg-glass: rgba(239, 68, 68, 0.1);
+            --border-glass: rgba(239, 68, 68, 0.2);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.2);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #7f1d1d 0%, #09090b 100%);
+            color: var(--text-primary);
+            padding: 20px;
+        }
+
+        .error-box {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px;
+            box-shadow: var(--shadow-premium);
+            padding: 45px 30px;
+            text-align: center;
+            max-width: 440px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .error-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-glass);
+            border: 2px solid var(--danger);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--danger);
+            box-shadow: 0 0 30px var(--danger-glow);
+            margin-bottom: 10px;
+            animation: shake 1.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.5;
+            max-width: 320px;
+        }
+
+        .back-button {
+            width: 100%;
+            max-width: 250px;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--danger) 0%, #b91c1c 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--danger-glow);
+            margin-top: 10px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--danger-glow);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-box">
+        <div class="error-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </div>
+        <h1>Falha no Pagamento</h1>
+        <p>{% if error_reason %}{{ error_reason }}{% else %}A transação foi rejeitada ou ocorreu um problema durante a verificação dos dados.{% endif %}</p>
+        <button class="back-button" onclick="window.location.href='/SelectPayment'">Tentar Novamente</button>
+    </div>
+</body>
+</html>

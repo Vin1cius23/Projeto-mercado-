@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento por Cartão de Crédito - Kiosk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: radial-gradient(circle at 50% 50%, #0c1524 0%, #09090b 100%);
+        }
+        .container {
+            max-width: 460px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+        }
+        .header h2 {
+            font-family: var(--font-outfit);
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+        .header p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        .form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .split-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Cartão de Crédito / Débito</h2>
+            <p>Insira os dados do cartão para validar a compra</p>
+        </div>
+        
+        <!-- Interactive Flipping Card in 3D -->
+        <div class="card-wrapper" id="cc-wrapper">
+            <div class="virtual-card" id="virtual-card">
+                <!-- Front -->
+                <div class="card-front">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="card-chip"></div>
+                        <div class="card-brand" id="cc-brand">CREDIT</div>
+                    </div>
+                    <div class="card-number" id="cc-number-display">•••• •••• •••• ••••</div>
+                    <div class="card-bottom-info">
+                        <div class="card-holder">
+                            <span class="card-info-label">Titular</span>
+                            <span class="card-info-value" id="cc-name-display">Nome do Titular</span>
+                        </div>
+                        <div class="card-expiry">
+                            <span class="card-info-label">Validade</span>
+                            <span class="card-info-value" id="cc-expiry-display">MM/AA</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Back -->
+                <div class="card-back">
+                    <div class="card-magnetic-strip"></div>
+                    <div class="card-signature-area">
+                        <div class="card-cvv" id="cc-cvv-display">•••</div>
+                    </div>
+                    <div class="card-holo"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credit Card Form -->
+        <form class="form" id="cc-form">
+            <div class="form-group">
+                <label>Nome Completo do Titular</label>
+                <input type="text" id="cc-name-input" placeholder="Como gravado no cartão" required autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label>Número do Cartão</label>
+                <input type="text" id="cc-number-input" placeholder="0000 0000 0000 0000" maxlength="19" required autocomplete="off">
+            </div>
+            
+            <div class="split-row">
+                <div class="form-group">
+                    <label>Validade</label>
+                    <input type="text" id="cc-expiry-input" placeholder="MM/AA" maxlength="5" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Código CVV</label>
+                    <input type="text" id="cc-cvv-input" placeholder="123" maxlength="4" required autocomplete="off">
+                </div>
+            </div>
+            
+            <button class="checkout-btn" type="submit" style="margin-top: 10px;">
+                <span>Confirmar Pagamento</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+            
+            <button class="cancel-btn" type="button" onclick="cancelPayment()">Voltar à seleção</button>
+        </form>
+    </div>
+
+    <!-- Processing Modal Screen overlay -->
+    <div class="processing-backdrop" id="cc-loader">
+        <div class="processing-dialog">
+            <div class="spinner"></div>
+            <div class="processing-text">
+                <h3 id="loader-title">Conectando com a máquina...</h3>
+                <p id="loader-desc">Aguarde a validação da operadora do cartão.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cardWrapper = document.getElementById("cc-wrapper");
+        const virtualCard = document.getElementById("virtual-card");
+        
+        // Input fields
+        const nameInput = document.getElementById("cc-name-input");
+        const numberInput = document.getElementById("cc-number-input");
+        const expiryInput = document.getElementById("cc-expiry-input");
+        const cvvInput = document.getElementById("cc-cvv-input");
+        
+        // Front/Back displays
+        const nameDisplay = document.getElementById("cc-name-display");
+        const numberDisplay = document.getElementById("cc-number-display");
+        const expiryDisplay = document.getElementById("cc-expiry-display");
+        const cvvDisplay = document.getElementById("cc-cvv-display");
+        const brandDisplay = document.getElementById("cc-brand");
+
+        // 3D Perspective Tilt on Mouse Movement
+        cardWrapper.addEventListener("mousemove", (e) => {
+            const rect = cardWrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            if (!cardWrapper.classList.contains("flipped")) {
+                virtualCard.style.transform = `rotateY(${x * 0.08}deg) rotateX(${-y * 0.08}deg)`;
+            }
+        });
+
+        cardWrapper.addEventListener("mouseleave", () => {
+            if (!cardWrapper.classList.contains("flipped")) {
+                virtualCard.style.transform = "rotateY(0) rotateX(0)";
+            }
+        });
+
+        // CVV Focus triggers back-flip rotation
+        cvvInput.addEventListener("focus", () => {
+            cardWrapper.classList.add("flipped");
+            virtualCard.style.transform = "rotateY(180deg)";
+        });
+
+        cvvInput.addEventListener("blur", () => {
+            cardWrapper.classList.remove("flipped");
+            virtualCard.style.transform = "rotateY(0) rotateX(0)";
+        });
+
+        // Real-time Card Holder updating
+        nameInput.addEventListener("input", (e) => {
+            const name = e.target.value;
+            nameDisplay.textContent = name.trim() ? name.toUpperCase() : "NOME DO TITULAR";
+        });
+
+        // Formatting & dynamic issuer detection
+        numberInput.addEventListener("input", (e) => {
+            let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            
+            if (val.startsWith("4")) {
+                brandDisplay.textContent = "VISA";
+                brandDisplay.style.color = "#3b82f6";
+            } else if (/^5[1-5]/.test(val) || /^222[1-9]/.test(val)) {
+                brandDisplay.textContent = "MASTERCARD";
+                brandDisplay.style.color = "#f97316";
+            } else if (val.startsWith("37") || val.startsWith("34")) {
+                brandDisplay.textContent = "AMEX";
+                brandDisplay.style.color = "#06b6d4";
+            } else {
+                brandDisplay.textContent = "CREDIT";
+                brandDisplay.style.color = "var(--accent)";
+            }
+
+            let formatted = "";
+            for (let i = 0; i < val.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += " ";
+                formatted += val[i];
+            }
+            e.target.value = formatted;
+            numberDisplay.textContent = formatted ? formatted : "•••• •••• •••• ••••";
+        });
+
+        // MM/AA validator
+        expiryInput.addEventListener("input", (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length >= 2) {
+                let month = val.slice(0, 2);
+                if (parseInt(month) > 12) month = "12";
+                if (parseInt(month) === 0) month = "01";
+                val = month + "/" + val.slice(2, 4);
+            }
+            e.target.value = val;
+            expiryDisplay.textContent = val ? val : "MM/AA";
+        });
+
+        cvvInput.addEventListener("input", (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            e.target.value = val;
+            cvvDisplay.textContent = val ? "•".repeat(val.length) : "•••";
+        });
+
+        // Form checkout and server synchronization
+        const ccForm = document.getElementById("cc-form");
+        const ccLoader = document.getElementById("cc-loader");
+        const loaderTitle = document.getElementById("loader-title");
+        const loaderDesc = document.getElementById("loader-desc");
+
+        ccForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            // Show custom simulated processing spinner
+            ccLoader.style.display = "flex";
+            
+            setTimeout(() => {
+                loaderTitle.textContent = "Verificando saldo...";
+                loaderDesc.textContent = "Buscando autorização de crédito junto ao banco.";
+            }, 1200);
+
+            setTimeout(() => {
+                loaderTitle.textContent = "Finalizando transação...";
+                loaderDesc.textContent = "Compra aprovada. Registrando no histórico.";
+            }, 2400);
+
+            // POST to backend checkout simulation
+            setTimeout(async () => {
+                try {
+                    const res = await fetch("/api/checkout/card", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ payment_method: "Crédito" })
+                    });
+                    
+                    if (res.ok) {
+                        window.location.href = "/SuccessRoute";
+                    } else {
+                        window.location.href = "/ErrorRoute";
+                    }
+                } catch (err) {
+                    window.location.href = "/ErrorRoute";
+                }
+            }, 3600);
+        });
+
+        function cancelPayment() {
+            window.location.href = "/SelectPayment";
+        }
+    </script>
+</body>
+</html>

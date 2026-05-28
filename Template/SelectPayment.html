@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forma de Pagamento - Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #09090b;
+            --bg-glass: rgba(30, 41, 59, 0.45);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent: #06b6d4;
+            --accent-hover: #0891b2;
+            --accent-glow: rgba(6, 182, 212, 0.15);
+            
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.15);
+            
+            --font-outfit: 'Outfit', sans-serif;
+            --font-inter: 'Inter', sans-serif;
+            
+            --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 1px 3px rgba(255, 255, 255, 0.05) inset;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-inter);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #1e152a 0%, #09090b 100%);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        .container {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            padding: 40px;
+            border-radius: 28px;
+            box-shadow: var(--shadow-premium);
+            width: 90vw;
+            max-width: 580px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-area {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--accent);
+            filter: drop-shadow(0 0 10px var(--accent-glow));
+        }
+
+        h2 {
+            font-family: var(--font-outfit);
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        /* Order Summary Card */
+        .summary-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-total {
+            font-family: var(--font-outfit);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--success);
+            text-shadow: 0 0 12px var(--success-glow);
+        }
+
+        /* Payments Grid Layout */
+        .payment-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .payment-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 18px;
+            padding: 22px 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .payment-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px -8px var(--accent-glow);
+        }
+
+        .payment-card svg {
+            color: var(--accent);
+            transition: var(--transition);
+        }
+
+        .payment-card:hover svg {
+            transform: scale(1.1);
+        }
+
+        .payment-card span {
+            font-family: var(--font-outfit);
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Back Button */
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-area">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+        </div>
+        
+        <h2>Checkout Seguro</h2>
+        <p class="subtitle">Selecione o seu método de pagamento preferido</p>
+        
+        <div class="summary-card">
+            <span class="summary-label">Total do Pedido</span>
+            <span class="summary-total" id="order-total">R$ 0,00</span>
+        </div>
+        
+        <div class="payment-options-grid">
+            <div class="payment-card" onclick="Pix()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+                <span>PIX</span>
+            </div>
+            
+            <div class="payment-card" onclick="Creditcard()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                </svg>
+                <span>Crédito</span>
+            </div>
+            
+            <div class="payment-card" onclick="Creditcard()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+                <span>Débito</span>
+            </div>
+            
+            <div class="payment-card" onclick="VA()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                <span>Alimentação</span>
+            </div>
+        </div>
+        
+        <button class="back-btn" onclick="backToPDV()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Voltar ao PDV</span>
+        </button>
+    </div>
+
+    <script>
+        // Fetch accurate total amount from cart API
+        async function fetchOrderTotal() {
+            try {
+                const res = await fetch("/api/cart");
+                if (res.ok) {
+                    const data = await res.json();
+                    const sub = data.total;
+                    const tax = Math.round(sub * 0.0825 * 100) / 100;
+                    const tot = Math.round((sub + tax) * 100) / 100;
+                    document.getElementById("order-total").innerText = `R$ ${tot.toFixed(2).replace('.', ',')}`;
+                }
+            } catch (err) {
+                console.error("Error loading order total:", err);
+            }
+        }
+
+        fetchOrderTotal();
+
+        function Creditcard() {
+            window.location.href = "/CreditRoute";        
+        }
+        function Pix() {
+            window.location.href = "/PixRoute";
+        }
+        function VA() {
+            window.location.href = "/VAroute";
+        }
+        function backToPDV() {
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>
