@@ -187,6 +187,11 @@ def clear_cart():
     database.clear_cart()
     return jsonify({"success": True, "total": 0.0, "cart": []})
 
+@app.route('/api/products', methods=['GET'])
+def get_public_products():
+    products = database.get_all_products()
+    return jsonify(products)
+
 # ── API Checkout Simulation ──────────────────────────────────────────────────
 @app.route('/api/checkout/card', methods=['POST'])
 def checkout_card():

@@ -35,4 +35,18 @@ if DEBUG:
     print(f"[DEBUG] Static:   {STATIC_DIR}")
     print(f"[DEBUG] Template: {TEMPLATE_DIR}")
 
+# ── Auto-Open Browser Thread ──────────────────────────────────────────────────
+import threading
+import time
+import webbrowser
+
+def open_browser():
+    # Aguarda 1.5 segundos para o servidor Flask inicializar completamente
+    time.sleep(1.5)
+    url = f"http://127.0.0.1:{PORT}"
+    print(f"[App] Abrindo automaticamente o PDV em: {url}")
+    webbrowser.open(url)
+
+threading.Thread(target=open_browser, daemon=True).start()
+
 RapidHost.hostSite("index.html")

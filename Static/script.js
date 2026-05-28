@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!catalogGrid) return;
         
         try {
-            const res = await fetch("/api/admin/products");
+            const res = await fetch("/api/products");
             if (!res.ok) throw new Error("Falha ao buscar catálogo");
             
             cachedProducts = await res.json();
