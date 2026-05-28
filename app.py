@@ -6,7 +6,14 @@ from datetime import datetime, timedelta
 import ast
 import numpy as np
 from flask import Flask, jsonify, request, render_template, redirect, url_for, send_from_directory, session
-import cv2
+try:
+    import cv2
+    OPENCV_AVAILABLE = True
+    print("[OCR] OpenCV loaded successfully.")
+except Exception as e:
+    OPENCV_AVAILABLE = False
+    print(f"[OCR] OpenCV not available. Reason: {e}")
+
 try:
     import fitz  # PyMuPDF
     PYMUPDF_AVAILABLE = True
