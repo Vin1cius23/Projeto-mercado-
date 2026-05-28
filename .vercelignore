@@ -1,0 +1,14 @@
+.venv
+venv
+.git
+.vscode
+.gemini
+build
+dist
+__pycache__
+*.pyc
+*.bak
+RouteTester.exe
+output_page.png
+*.log
+*.spec
