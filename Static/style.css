@@ -173,17 +173,73 @@ body {
     pointer-events: none;
 }
 
-/* Category Filter Bar */
+/* Category Filter Bar Scroll Container */
+.categories-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
 .categories-bar {
+    flex: 1;
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 5px;
+    padding: 5px 0;
     scrollbar-width: none; /* Hide scrollbar for clean tab-strip */
+    scroll-behavior: smooth;
 }
 
 .categories-bar::-webkit-scrollbar {
     display: none;
+}
+
+.scroll-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.scroll-arrow:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.scroll-arrow:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.scroll-arrow.left {
+    left: -12px;
+}
+
+.scroll-arrow.right {
+    right: -12px;
+}
+
+.scroll-arrow.visible {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .category-pill {
@@ -245,6 +301,7 @@ body {
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+    min-height: 260px;
 }
 
 .product-card:hover {
@@ -262,6 +319,7 @@ body {
     align-items: center;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .product-image-container img {
@@ -292,6 +350,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .product-card-name {
@@ -321,6 +380,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-top: 5px;
+    flex-shrink: 0;
 }
 
 .product-card-price {
@@ -809,6 +869,13 @@ body {
     gap: 30px;
     overflow-y: auto;
     height: 100%;
+}
+
+.admin-section {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
 }
 
 .admin-header {

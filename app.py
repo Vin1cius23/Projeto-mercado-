@@ -77,6 +77,36 @@ def serve_images(filename):
     # Fallback to default bundled image inside PyInstaller temporary directory
     return send_from_directory(get_resource_path('Images'), filename)
 
+# ── Proxy External Images (CORS/CSP Bypass) ───────────────────────────────────
+@app.route('/api/proxy-image')
+def proxy_image():
+    import urllib.request
+    from flask import Response
+    
+    url = request.args.get('url', '')
+    if not url:
+        return 'Nenhuma URL fornecida.', 400
+        
+    # Convert Google Drive URL to direct view link if applicable
+    if 'drive.google.com' in url:
+        match = re.search(r'/file/d/([a-zA-Z0-9_-]+)', url) or re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url)
+        if match:
+            url = f"https://drive.google.com/uc?export=view&id={match.group(1)}"
+            
+    try:
+        req = urllib.request.Request(
+            url, 
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = response.read()
+            mime_type = response.getheader('Content-Type', 'image/jpeg')
+            return Response(data, mimetype=mime_type)
+    except Exception as e:
+        print(f"[Proxy] Erro ao carregar imagem externa {url}: {e}")
+        # Fallback to default local placeholder image
+        return send_from_directory(get_resource_path('Images'), '1zYZMU.png')
+
 # ── View Routes ─────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
@@ -92,7 +122,8 @@ def credit_card():
 
 @app.route('/PixRoute')
 def pix_payment():
-    return render_template("TelaPagarComPix.html")
+    pix_key = database.get_setting("pix_key", "00020126580014br.gov.bcb.pix0136e054cfdf-e2a2-4a7b-a010-38435d100096520400005303986540510.005802BR5915TerminalPDV6009SaoPaulo62070503***6304A2B8")
+    return render_template("TelaPagarComPix.html", pix_key=pix_key)
 
 @app.route('/VAroute')
 def va_payment():
@@ -283,6 +314,33 @@ def admin_sales():
     sales = database.get_sales_history()
     return jsonify(sales)
 
+@app.route('/api/admin/settings', methods=['GET', 'POST'])
+def admin_settings():
+    if not session.get('admin_logged_in'):
+        return jsonify({"success": False, "message": "Acesso não autorizado! Faça login primeiro."}), 401
+        
+    if request.method == 'GET':
+        settings = {
+            "pix_key": database.get_setting("pix_key"),
+            "pix_receiver": database.get_setting("pix_receiver"),
+            "pix_bank": database.get_setting("pix_bank")
+        }
+        return jsonify(settings)
+    else:
+        data = request.json or {}
+        pix_key = str(data.get('pix_key', '')).strip()
+        pix_receiver = str(data.get('pix_receiver', '')).strip()
+        pix_bank = str(data.get('pix_bank', '')).strip()
+        
+        if not pix_key or not pix_receiver or not pix_bank:
+            return jsonify({"success": False, "message": "Preencha todos os campos obrigatórios!"}), 400
+            
+        database.set_setting("pix_key", pix_key)
+        database.set_setting("pix_receiver", pix_receiver)
+        database.set_setting("pix_bank", pix_bank)
+        
+        return jsonify({"success": True, "message": "Configurações salvas com sucesso!"})
+
 # ── Helper: OCR Parsing ──────────────────────────────────────────────────────
 def extract_e2e_id(text):
     """Regex helper to extract Brazilian PIX End-to-End IDs (starts with E/D, total 32 alphanumeric chars)."""
@@ -359,11 +417,29 @@ def verify_receiver(text, filename=""):
     if "teste" in lower_fn or "simulado" in lower_fn or "output_page" in lower_fn:
         return True # Bypass for test documents
         
-    store_keywords = ["ednilson", "nery", "kiosk", "auto-atendimento"]
+    # Get configured settings
+    config_receiver = database.get_setting("pix_receiver", "Ednilson Cesar Nery").lower()
+    config_bank = database.get_setting("pix_bank", "Banco do Brasil").lower()
+    
+    # Base keywords
+    store_keywords = ["kiosk", "auto-atendimento"]
+    
+    # Split receiver name into individual words and add them to keywords (len > 2)
+    for word in config_receiver.split():
+        if len(word) > 2:
+            store_keywords.append(word)
+            
+    # Split bank name into individual words and add them (len > 2)
+    for word in config_bank.split():
+        if len(word) > 2:
+            store_keywords.append(word)
+            
     text_lower = text.lower()
+    print(f"[OCR] Checking receiver against keywords: {store_keywords}")
     
     for kw in store_keywords:
         if kw in text_lower:
+            print(f"[OCR] Receiver matched keyword: {kw}")
             return True
             
     return False

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kiosk Auto-Atendimento - Premium</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.5">
 </head>
 <body>
     <div class="container">
@@ -50,12 +50,32 @@
                     </div>
                 </div>
                 
-                <!-- Horizontal Category Pills -->
-                <div class="categories-bar">
-                    <div class="category-pill active" data-category="Todos">Todos</div>
-                    <div class="category-pill" data-category="Lanches">Lanches</div>
-                    <div class="category-pill" data-category="Bebidas">Bebidas</div>
-                    <div class="category-pill" data-category="Sobremesas">Sobremesas</div>
+                <!-- Horizontal Category Pills with smooth scroll buttons -->
+                <div class="categories-wrapper">
+                    <button class="scroll-arrow left" id="scroll-left-btn" aria-label="Rolar para esquerda" type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    
+                    <div class="categories-bar" id="categories-bar">
+                        <div class="category-pill active" data-category="Todos">Todos</div>
+                        <div class="category-pill" data-category="Pães">Pães</div>
+                        <div class="category-pill" data-category="Salgados">Salgados</div>
+                        <div class="category-pill" data-category="Doces">Doces</div>
+                        <div class="category-pill" data-category="Bolos e Tortas">Bolos & Tortas</div>
+                        <div class="category-pill" data-category="Frios e Laticínios">Frios & Laticínios</div>
+                        <div class="category-pill" data-category="Bebidas">Bebidas</div>
+                        <div class="category-pill" data-category="Biscoitos e Snacks">Biscoitos & Snacks</div>
+                        <div class="category-pill" data-category="Lanches">Lanches</div>
+                        <div class="category-pill" data-category="Sobremesas">Sobremesas</div>
+                    </div>
+
+                    <button class="scroll-arrow right" id="scroll-right-btn" aria-label="Rolar para direita" type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
                 </div>
                 
                 <!-- Product grid container -->
@@ -147,6 +167,6 @@
     </div>
 
     <!-- JS Core -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=1.0.5"></script>
 </body>
 </html>

@@ -1,3 +1,15 @@
+function convertDriveUrl(url) {
+    if (!url) return '';
+    if (url.includes('drive.google.com')) {
+        // Match /file/d/FILE_ID or ?id=FILE_ID
+        const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            return `https://lh3.googleusercontent.com/d/${match[1]}`;
+        }
+    }
+    return url;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // ── Elements Binding ──────────────────────────────────────────────────────
     const screen = document.getElementById("terminal-screen");
@@ -145,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.innerHTML = `
                 <div class="product-card-badge">Cód: ${p.code}</div>
                 <div class="product-image-container">
-                    <img src="/images/${p.image}" alt="${p.name}" onerror="this.src='/images/1zYZMU.png';">
+                    <img src="${p.image.startsWith('http') ? '/api/proxy-image?url=' + encodeURIComponent(p.image) : '/images/' + p.image}" alt="${p.name}" onerror="this.src='/images/1zYZMU.png';">
                 </div>
                 <div class="product-card-info">
                     <span class="product-card-name">${p.name}</span>
@@ -191,6 +203,50 @@ document.addEventListener("DOMContentLoaded", () => {
             renderCatalog();
         });
     });
+    
+    // ── Categories Horizontal Scroll Arrows Controller ────────────────────────
+    const categoriesBar = document.getElementById("categories-bar");
+    const scrollLeftBtn = document.getElementById("scroll-left-btn");
+    const scrollRightBtn = document.getElementById("scroll-right-btn");
+    
+    if (categoriesBar && scrollLeftBtn && scrollRightBtn) {
+        const scrollAmount = 250; // Scroll increment in pixels
+        
+        scrollLeftBtn.addEventListener("click", () => {
+            categoriesBar.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+        });
+        
+        scrollRightBtn.addEventListener("click", () => {
+            categoriesBar.scrollBy({ left: scrollAmount, behavior: "smooth" });
+        });
+        
+        // Show/hide arrows depending on scroll limits
+        const toggleScrollArrows = () => {
+            const scrollLeft = Math.ceil(categoriesBar.scrollLeft);
+            const maxScrollLeft = categoriesBar.scrollWidth - categoriesBar.clientWidth;
+            
+            // Left arrow visibility (tolerance of 5px)
+            if (scrollLeft <= 5) {
+                scrollLeftBtn.classList.remove("visible");
+            } else {
+                scrollLeftBtn.classList.add("visible");
+            }
+            
+            // Right arrow visibility (tolerance of 5px)
+            if (scrollLeft >= maxScrollLeft - 5) {
+                scrollRightBtn.classList.remove("visible");
+            } else {
+                scrollRightBtn.classList.add("visible");
+            }
+        };
+        
+        categoriesBar.addEventListener("scroll", toggleScrollArrows);
+        window.addEventListener("resize", toggleScrollArrows);
+        
+        // Initial delayed runs to allow elements to load
+        setTimeout(toggleScrollArrows, 300);
+        setTimeout(toggleScrollArrows, 1000);
+    }
     
     // Search input listener
     if (searchInput) {
@@ -247,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
             itemRow.className = "cart-item";
             itemRow.innerHTML = `
                 <div class="item-img">
-                    <img src="/images/${item.image}" alt="${item.name}" onerror="this.style.display='none';">
+                    <img src="${item.image.startsWith('http') ? '/api/proxy-image?url=' + encodeURIComponent(item.image) : '/images/' + item.image}" alt="${item.name}" onerror="this.style.display='none';">
                 </div>
                 <div class="item-info">
                     <span class="item-name">${item.name}</span>

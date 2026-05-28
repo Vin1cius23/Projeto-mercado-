@@ -176,6 +176,67 @@
             background: rgba(255, 255, 255, 0.05);
             border-color: var(--text-secondary);
         }
+
+        /* Processing Backdrop Loader Overlay */
+        .processing-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(9, 9, 11, 0.92);
+            backdrop-filter: blur(16px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .processing-dialog {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            text-align: center;
+            max-width: 350px;
+            padding: 30px;
+        }
+
+        .spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid rgba(6, 182, 212, 0.1);
+            border-left-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .processing-text h3 {
+            font-family: var(--font-outfit);
+            font-size: 1.45rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .processing-text p {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -197,15 +258,14 @@
         
         <div class="payment-options-grid">
             <div class="payment-card" onclick="Pix()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                <!-- Official PIX SVG contour -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.002 2.001c-.13 0-.258.049-.356.147L2.146 11.646a.502.502 0 0 0 0 .708l9.5 9.5c.098.098.226.147.356.147.13 0 .258-.049.356-.147l9.5-9.5a.502.502 0 0 0 0-.708l-9.5-9.5a.502.502 0 0 0-.356-.147zm.001 2.207l7.293 7.293-7.293 7.293-7.293-7.293 7.293-7.293zm0 3.394l-3.899 3.9 3.899 3.899 3.899-3.899-3.899-3.9z"/>
                 </svg>
                 <span>PIX</span>
             </div>
             
-            <div class="payment-card" onclick="Creditcard()">
+            <div class="payment-card" onclick="processCardPayment('Crédito')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
                     <line x1="2" y1="10" x2="22" y2="10"></line>
@@ -213,7 +273,7 @@
                 <span>Crédito</span>
             </div>
             
-            <div class="payment-card" onclick="Creditcard()">
+            <div class="payment-card" onclick="processCardPayment('Débito')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                     <line x1="1" y1="10" x2="23" y2="10"></line>
@@ -221,7 +281,7 @@
                 <span>Débito</span>
             </div>
             
-            <div class="payment-card" onclick="VA()">
+            <div class="payment-card" onclick="processCardPayment('Alimentação')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                     <path d="M2 17l10 5 10-5"></path>
@@ -238,6 +298,17 @@
             </svg>
             <span>Voltar ao PDV</span>
         </button>
+    </div>
+
+    <!-- Processing Backdrop Overlay -->
+    <div class="processing-backdrop" id="payment-loader">
+        <div class="processing-dialog">
+            <div class="spinner"></div>
+            <div class="processing-text">
+                <h3 id="loader-title">Processando...</h3>
+                <p id="loader-desc">Por favor, insira ou aproxime o cartão do terminal.</p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -259,17 +330,58 @@
 
         fetchOrderTotal();
 
-        function Creditcard() {
-            window.location.href = "/CreditRoute";        
-        }
         function Pix() {
             window.location.href = "/PixRoute";
         }
-        function VA() {
-            window.location.href = "/VAroute";
-        }
         function backToPDV() {
             window.location.href = "/";
+        }
+
+        function showProcessingLoader(method) {
+            const loader = document.getElementById("payment-loader");
+            const title = document.getElementById("loader-title");
+            const desc = document.getElementById("loader-desc");
+            
+            title.innerText = `Pagamento no ${method}`;
+            desc.innerText = "Por favor, insira ou aproxime o cartão do terminal de autoatendimento.";
+            
+            loader.style.display = "flex";
+            
+            // Switch message after 1.2 seconds for realistic UI sequence
+            setTimeout(() => {
+                desc.innerText = "Conectando com o banco adquirente... Processando transação.";
+            }, 1200);
+        }
+
+        async function processCardPayment(method) {
+            showProcessingLoader(method);
+            
+            // Simulate card reading delay and API call
+            setTimeout(async () => {
+                // 90% approval rate, 10% decline rate
+                const isApproved = Math.random() < 0.90;
+                
+                if (isApproved) {
+                    try {
+                        const res = await fetch("/api/checkout/card", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ payment_method: method })
+                        });
+                        
+                        if (res.ok) {
+                            window.location.href = "/SuccessRoute";
+                        } else {
+                            window.location.href = "/ErrorRoute";
+                        }
+                    } catch (err) {
+                        window.location.href = "/ErrorRoute";
+                    }
+                } else {
+                    // Simulate decline
+                    window.location.href = "/ErrorRoute";
+                }
+            }, 2500);
         }
     </script>
 </body>

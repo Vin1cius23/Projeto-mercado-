@@ -79,7 +79,30 @@ def init_db():
         )
     """)
     
+    # 6. Table: Settings
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
+    
     conn.commit()
+    
+    # Seed default settings if table is empty
+    cursor.execute("SELECT COUNT(*) FROM settings")
+    if cursor.fetchone()[0] == 0:
+        default_settings = [
+            ("pix_key", "00020126580014br.gov.bcb.pix0136e054cfdf-e2a2-4a7b-a010-38435d100096520400005303986540510.005802BR5915TerminalPDV6009SaoPaulo62070503***6304A2B8"),
+            ("pix_receiver", "Ednilson Cesar Nery"),
+            ("pix_bank", "Banco do Brasil")
+        ]
+        cursor.executemany("""
+            INSERT INTO settings (key, value)
+            VALUES (?, ?)
+        """, default_settings)
+        conn.commit()
+        print("[Database] Default settings inserted successfully.")
     
     # Seed default products if table is empty
     cursor.execute("SELECT COUNT(*) FROM products")
@@ -397,6 +420,36 @@ def register_receipt(tx_id):
         return True
     except Exception as e:
         print(f"[Database] Error registering receipt: {e}")
+        return False
+
+def get_setting(key, default_value=""):
+    """Gets a setting value from settings table."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+        row = cursor.fetchone()
+        conn.close()
+        return row["value"] if row else default_value
+    except Exception as e:
+        print(f"[Database] Error reading setting '{key}': {e}")
+        return default_value
+
+def set_setting(key, value):
+    """Sets/updates a setting value in settings table."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO settings (key, value)
+            VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        """, (key, str(value)))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"[Database] Error writing setting '{key}': {e}")
         return False
 
 # Initialize DB on load to guarantee file existence
