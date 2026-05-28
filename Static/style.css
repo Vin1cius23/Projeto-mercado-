@@ -1376,3 +1376,87 @@ body {
     font-size: 0.88rem;
     color: var(--text-secondary);
 }
+
+/* ── RESPONSIVE MOBILE MEDIA QUERY ────────────────────────────────────────── */
+@media (max-width: 900px) {
+    body {
+        overflow: auto !important; /* Allow scrolling on body */
+        padding: 0 !important;
+        align-items: flex-start !important;
+        min-height: 100vh !important;
+    }
+    
+    .container {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100vw !important;
+        height: auto !important;
+        max-height: none !important;
+        padding: 15px !important;
+        border-radius: 0 !important;
+        border: none !important;
+        gap: 20px !important;
+    }
+    
+    .left-pane {
+        height: 60vh !important; /* Lock product catalog at 60% of viewport */
+        flex-shrink: 0 !important;
+    }
+    
+    .CF {
+        height: auto !important;
+        min-height: 480px !important;
+        margin-top: 10px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .catalog-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; /* 2 to 3 columns on phone */
+        gap: 10px !important;
+    }
+    
+    .product-card {
+        padding: 10px !important;
+        min-height: 210px !important; /* Shorter cards on phone */
+        gap: 8px !important;
+    }
+    
+    .product-image-container {
+        height: 80px !important; /* Slightly shorter image container */
+    }
+    
+    .product-card-desc {
+        display: none !important; /* Hide description on mobile for extreme grid cleanliness */
+    }
+    
+    .product-card-price {
+        font-size: 0.95rem !important;
+    }
+    
+    .product-card-name {
+        font-size: 0.85rem !important;
+    }
+    
+    .Keyboard_body {
+        grid-template-columns: repeat(3, 1fr) !important;
+        height: 320px !important;
+    }
+    
+    .categories-bar {
+        padding-bottom: 2px !important;
+    }
+    
+    .scroll-arrow {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    .scroll-arrow.left {
+        left: -6px !important;
+    }
+    
+    .scroll-arrow.right {
+        right: -6px !important;
+    }
+}
+

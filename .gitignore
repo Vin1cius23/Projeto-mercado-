@@ -42,3 +42,5 @@ ENV/
 *.sln
 *.swp
 *.swo
+
+.vercel
