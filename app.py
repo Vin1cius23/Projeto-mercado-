@@ -34,6 +34,8 @@ def get_resource_path(relative_path):
 
 def get_external_path(relative_path):
     """Resolves absolute path next to the executable for persistent files, or dev source folder."""
+    if os.environ.get('VERCEL') == '1':
+        return os.path.join('/tmp', relative_path)
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(os.path.dirname(sys.executable), relative_path)
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)

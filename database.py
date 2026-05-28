@@ -6,7 +6,9 @@ from Graphite import GraphiteInter
 
 import sys
 
-if hasattr(sys, '_MEIPASS'):
+if os.environ.get('VERCEL') == '1':
+    base_dir = '/tmp'
+elif hasattr(sys, '_MEIPASS'):
     base_dir = os.path.dirname(sys.executable)
 else:
     base_dir = os.path.dirname(os.path.abspath(__file__))
