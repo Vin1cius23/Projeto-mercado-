@@ -350,7 +350,7 @@
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
                         <td><strong>${p.code}</strong></td>
-                        <td><img src="/images/${p.image}" alt="Img" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px; background: rgba(255,255,255,0.05);" onerror="this.src='/images/1zYZMU.png';"></td>
+                        <td><img src="${p.image.startsWith('http') ? '/api/proxy-image?url=' + encodeURIComponent(p.image) : '/images/' + p.image}" alt="Img" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px; background: rgba(255,255,255,0.05);" onerror="this.src='/images/1zYZMU.png';"></td>
                         <td>${p.name}</td>
                         <td><span class="badge credit">${p.category}</span></td>
                         <td><strong style="color: var(--accent);">R$ ${p.price.toFixed(2).replace('.', ',')}</strong></td>
