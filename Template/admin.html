@@ -59,6 +59,12 @@
                     </span>
                     <span>Logs de Acesso</span>
                 </button>
+                <button class="admin-nav-btn" onclick="switchSection('settings', this)">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </span>
+                    <span>Configurações</span>
+                </button>
             </div>
             
             <div style="flex-grow: 1;"></div>
@@ -222,6 +228,31 @@
                     </table>
                 </div>
             </div>
+
+            <!-- SECTION 5: SETTINGS -->
+            <div class="admin-section" id="sec-settings" style="display: none;">
+                <div class="admin-header">
+                    <h1>Configurações Bancárias do Pix</h1>
+                </div>
+                
+                <div class="dashboard-panel" style="max-width: 600px; width: 100%; display: flex; flex-direction: column; gap: 20px; padding: 25px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: 24px;">
+                    <div class="form-group">
+                        <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Chave Pix Copia e Cola (BR Code Completo)</label>
+                        <textarea id="cfg-pix-key" style="height: 100px; padding: 10px 12px; resize: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 10px; color: white;" placeholder="Insira o código Pix Copia e Cola completo"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Nome do Recebedor (exato do Pix)</label>
+                        <input type="text" id="cfg-pix-receiver" placeholder="Ex: Ednilson Cesar Nery" style="height: 42px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0 12px; color: white;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Nome do Banco (exato do Pix)</label>
+                        <input type="text" id="cfg-pix-bank" placeholder="Ex: Banco do Brasil" style="height: 42px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0 12px; color: white;">
+                    </div>
+                    <button class="checkout-btn" onclick="saveSettings()" style="margin-top: 10px; width: 100%; height: 45px; font-size: 0.95rem; font-weight: 700;">
+                        Salvar Configurações Bancárias
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -293,6 +324,7 @@
             if (sectionId === "catalog") loadCatalogTable();
             if (sectionId === "sales") loadSalesTable();
             if (sectionId === "logs") loadLogsTable();
+            if (sectionId === "settings") loadSettingsData();
         }
         
         // ── DASHBOARD LOADING ────────────────────────────────────────────────
@@ -515,6 +547,49 @@
             }
         }
         
+        // ── SETTINGS MANAGEMENT ──────────────────────────────────────────────
+        async function loadSettingsData() {
+            try {
+                const res = await fetch("/api/admin/settings");
+                if (!res.ok) throw new Error();
+                const settings = await res.json();
+                
+                document.getElementById("cfg-pix-key").value = settings.pix_key || "";
+                document.getElementById("cfg-pix-receiver").value = settings.pix_receiver || "";
+                document.getElementById("cfg-pix-bank").value = settings.pix_bank || "";
+            } catch (err) {
+                console.error("Error loading settings:", err);
+            }
+        }
+        
+        async function saveSettings() {
+            const pix_key = document.getElementById("cfg-pix-key").value.trim();
+            const pix_receiver = document.getElementById("cfg-pix-receiver").value.trim();
+            const pix_bank = document.getElementById("cfg-pix-bank").value.trim();
+            
+            if (!pix_key || !pix_receiver || !pix_bank) {
+                alert("Por favor, preencha todos os campos obrigatórios!");
+                return;
+            }
+            
+            try {
+                const res = await fetch("/api/admin/settings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pix_key, pix_receiver, pix_bank })
+                });
+                
+                if (res.ok) {
+                    alert("Configurações salvas com sucesso!");
+                } else {
+                    const data = await res.json();
+                    alert("Erro ao salvar: " + data.message);
+                }
+            } catch (err) {
+                alert("Erro de rede ao salvar configurações.");
+            }
+        }
+
         // Init loaders
         loadDashboardData();
     </script>
